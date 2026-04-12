@@ -1,44 +1,43 @@
-# Step 4 — 통합 테스트
+# Step 4 — 프론트: entities/menu + shared/api
 
 ## 목표
-전체 플로우 정상 동작 확인
+FSD entities 계층에 Menu 타입 정의 + API 함수 생성
 
-## 테스트 시나리오
+## 작업 내용
 
-### 4-1. 환경 준비
-1. Docker Compose → PostgreSQL 실행 확인
-2. Spring Boot 서버 실행 (localhost:8080)
-3. Vite dev 서버 실행 (localhost:5173, 프록시 설정)
-
-### 4-2. 초기 상태 확인
-- [ ] 헤더에 1차 메뉴 4개 표시 (홈, 학습, 내 카드, 설정)
-- [ ] 각 메뉴 클릭 → 페이지 이동 정상
-- [ ] 브라우저 콘솔에 에러 없음
-
-### 4-3. 메뉴 관리 CRUD 테스트
-- [ ] /menu-manage 접속 → 트리 + 폼 레이아웃 표시
-- [ ] 1차 메뉴 추가: "게시판" (/board) → 트리에 반영 → 헤더에 반영
-- [ ] 2차 메뉴 추가: "학습" 하위에 "기초" (/study/basic) → 트리에 반영
-- [ ] 메뉴 수정: 이름/경로/순서 변경 → 즉시 반영
-- [ ] 메뉴 삭제: 삭제 후 트리 + 헤더에서 제거
-- [ ] 노출 OFF → 헤더에서 숨김, 트리에서는 표시
-
-### 4-4. 엣지 케이스
-- [ ] 중복 path 입력 시 에러 처리
-- [ ] 하위 메뉴 있는 상위 메뉴 삭제 시 동작 확인
-- [ ] 빈 이름/경로 입력 시 validation 동작
-
-## Vite 프록시 설정
+### 4-1. 타입 정의
 ```typescript
-// vite.config.ts
-server: {
-  proxy: {
-    '/api': 'http://localhost:8080'
-  }
+// entities/menu/model/types.ts
+interface Menu {
+  id: number; name: string; path: string;
+  parentId: number | null; depth: number;
+  sortOrder: number; visible: boolean;
+  children: Menu[]
 }
+interface MenuRequest { name, path, parentId, sortOrder, visible }
 ```
 
+### 4-2. API 함수
+```typescript
+// entities/menu/api/menuApi.ts
+menuApi.getTree()          → GET /api/menus/tree
+menuApi.getByDepth(depth)  → GET /api/menus?depth=N
+menuApi.getById(id)        → GET /api/menus/{id}
+menuApi.create(data)       → POST /api/menus
+menuApi.update(id, data)   → PUT /api/menus/{id}
+menuApi.delete(id)         → DELETE /api/menus/{id}
+```
+
+### 4-3. Vite 프록시
+```typescript
+// vite.config.ts
+server: { proxy: { '/api': 'http://localhost:8080' } }
+```
+
+### 4-4. axios baseURL
+- `baseURL: ''` (빈 문자열) → Vite 프록시 경유
+- 직접 8080 호출 시 CORS 에러 발생하므로 반드시 프록시 사용
+
 ## 완료 기준
-- [ ] 위 시나리오 전체 통과
-- [ ] 브라우저 콘솔 에러 없음
-- [ ] API 호출 정상 (Network 탭 확인)
+- [ ] 프론트에서 /api/menus/tree 호출 성공
+- [ ] 프록시 경유로 CORS 에러 없음

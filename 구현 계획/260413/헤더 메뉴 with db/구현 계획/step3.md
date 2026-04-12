@@ -1,39 +1,20 @@
-# Step 3 — 프론트: 헤더 DB 메뉴 렌더링 + 페이지 이동
+# Step 3 — 백엔드: Security + CORS
 
 ## 목표
-헤더에 DB 1차 메뉴를 동적 렌더링하고, 클릭 시 해당 페이지로 이동
+개발 환경에서 프론트 연동 가능하도록 보안/CORS 설정
 
 ## 작업 내용
 
-### 3-1. Header 수정
-- 기존 하드코딩 nav → useQuery로 1차 메뉴(depth=1) 조회
-- visible=true인 메뉴만 표시
-- sortOrder 순 정렬
-- "메뉴 관리" 링크는 하드코딩 유지 (관리자 기능)
+### 3-1. SecurityConfig
+- `@EnableWebSecurity`
+- 전체 `permitAll()` (개발용, 추후 인증 추가)
+- CSRF 비활성화
 
-### 3-2. 동적 라우트
-```
-src/
-├── pages/
-│   ├── home/ui/HomePage.tsx             # 기존
-│   ├── menu-manage/ui/MenuManagePage.tsx # Step 2에서 생성
-│   └── placeholder/ui/PlaceholderPage.tsx # 신규: "준비 중" 페이지
-└── app/routes/AppRoutes.tsx             # 동적 라우트 추가
-```
-
-### 3-3. AppRoutes 수정
-- DB 메뉴의 path 기반으로 Route 동적 생성
-- "/" → HomePage
-- "/menu-manage" → MenuManagePage
-- 나머지 DB 메뉴 path → PlaceholderPage (메뉴명 표시)
-- 매칭 안 되는 경로 → 404
-
-### 3-4. PlaceholderPage
-- URL 파라미터 또는 메뉴 데이터에서 메뉴명 추출
-- "{메뉴명} 페이지 - 구현 예정" 표시
+### 3-2. WebConfig (CORS)
+- `/api/**` 경로에 `localhost:5173`, `localhost:5174` 허용
+- GET, POST, PUT, DELETE 허용
+- Vite 포트 자동 변경 대비 (5173 사용 중이면 5174로 할당됨)
 
 ## 완료 기준
-- [ ] 헤더에 DB 1차 메뉴 동적 표시
-- [ ] DB에서 메뉴 추가/수정 → 헤더에 반영
-- [ ] 메뉴 클릭 시 해당 경로로 이동
-- [ ] 존재하지 않는 페이지는 "구현 예정" 표시
+- [ ] 프론트(5173/5174)에서 API 호출 시 CORS 에러 없음
+- [ ] Security가 API 요청 차단하지 않음

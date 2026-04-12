@@ -5,6 +5,7 @@ import type { Menu, MenuRequest } from '../../../entities/menu'
 interface MenuDetailProps {
   menu: Menu | null
   allMenus: Menu[]
+  defaultParentId?: number | null
   onSave: (data: MenuRequest, id?: number) => void
   onDelete: (id: number) => void
 }
@@ -19,7 +20,7 @@ function flattenMenus(menus: Menu[], result: { id: number; name: string; depth: 
   return result
 }
 
-export function MenuDetail({ menu, allMenus, onSave, onDelete }: MenuDetailProps) {
+export function MenuDetail({ menu, allMenus, defaultParentId, onSave, onDelete }: MenuDetailProps) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<MenuRequest>({
     defaultValues: {
       name: '',
@@ -43,12 +44,12 @@ export function MenuDetail({ menu, allMenus, onSave, onDelete }: MenuDetailProps
       reset({
         name: '',
         path: '',
-        parentId: null,
+        parentId: defaultParentId ?? null,
         sortOrder: 0,
         visible: true,
       })
     }
-  }, [menu, reset])
+  }, [menu, defaultParentId, reset])
 
   const flatMenus = flattenMenus(allMenus).filter((m) => menu?.id !== m.id)
 
