@@ -1,0 +1,16 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Java / Gradle
+edu-flash-server/.gradle/
+edu-flash-server/build/
+edu-flash-server/bin/
+
+# Node
+edu-flash-front/node_modules/
+edu-flash-front/dist/
+
+# OS
+.DS_Store

@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: edu-flash-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: edu_flash
+      POSTGRES_USER: edu_flash
+      POSTGRES_PASSWORD: edu_flash
+    volumes:
+      - edu-flash-data:/var/lib/postgresql/data
+
+volumes:
+  edu-flash-data:

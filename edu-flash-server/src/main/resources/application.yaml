@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: edu-flash-server
+  datasource:
+    url: jdbc:postgresql://localhost:5432/edu_flash
+    username: edu_flash
+    password: edu_flash
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
