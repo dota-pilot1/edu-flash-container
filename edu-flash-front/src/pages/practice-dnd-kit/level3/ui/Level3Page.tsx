@@ -65,9 +65,8 @@ function SortableCard({ id, children }: { id: string; children: React.ReactNode 
       {...attributes}
       {...listeners}
       // isDragging → opacity-0: 원본 숨기고 DragOverlay만 보여줌
-      className={`cursor-grab rounded-md border bg-white px-3 py-2 text-sm shadow-sm ${
-        isDragging ? 'opacity-0' : 'border-gray-200'
-      }`}
+      className={`cursor-grab rounded-md border bg-white px-3 py-2 text-sm shadow-sm ${isDragging ? 'opacity-0' : 'border-gray-200'
+        }`}
     >
       {children}
     </div>
@@ -127,10 +126,13 @@ export function Level3Page() {
     const { active, over } = event
     if (!over) return
 
+    // 드래그 중인 아이템의 컨테이너
     const activeContainer = findContainer(containers, active.id as string)
-    // over가 아이템이면 그 아이템의 컨테이너, 컨테이너 자체면 그 id
+
+    // 마우스가 올라가 있는 곳의 컨테이너
     const overContainer = findContainer(containers, over.id as string) ?? (over.id as ContainerId)
 
+    // 컨테이너가 없으면 리턴
     if (!activeContainer || !overContainer) return
 
     // 다른 컨테이너로 이동하는 경우
@@ -139,14 +141,14 @@ export function Level3Page() {
         const activeItems = [...prev[activeContainer]]
         const overItems = [...prev[overContainer]]
         const activeIndex = activeItems.findIndex((i) => i.id === active.id)
-        const [movedItem] = activeItems.splice(activeIndex, 1)
+        const [movingItem] = activeItems.splice(activeIndex, 1)
 
         // 핵심: push가 아니라 over 위치에 삽입 → 부드러운 삽입 효과
         const overIndex = overItems.findIndex((i) => i.id === over.id)
         if (overIndex >= 0) {
-          overItems.splice(overIndex, 0, movedItem)
+          overItems.splice(overIndex, 0, movingItem)
         } else {
-          overItems.push(movedItem)
+          overItems.push(movingItem)
         }
 
         return { ...prev, [activeContainer]: activeItems, [overContainer]: overItems }
@@ -154,8 +156,8 @@ export function Level3Page() {
     }
     // 같은 컨테이너 내 순서 변경
     else {
-      const overIndex = containers[activeContainer].findIndex((i) => i.id === over.id)
       const activeIndex = containers[activeContainer].findIndex((i) => i.id === active.id)
+      const overIndex = containers[activeContainer].findIndex((i) => i.id === over.id)
 
       if (activeIndex !== overIndex && overIndex !== -1) {
         setContainers((prev) => ({
