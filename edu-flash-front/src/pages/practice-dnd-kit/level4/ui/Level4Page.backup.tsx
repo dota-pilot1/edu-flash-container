@@ -8,15 +8,15 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  useDroppable,
   useDraggable,
+  useDroppable,
 } from '@dnd-kit/core'
-import { motion } from 'framer-motion'
+import { CSS } from '@dnd-kit/utilities'
 
 // 학습 포인트:
-// 전략: 드래그 중에는 하이라이트만, 드롭 시 swap + framer-motion layout 애니메이션
-// 드래그 중 미리보기 swap은 dnd-kit transform과 framer-motion layout이 충돌하므로 안 씀
-// key={item.id}로 React가 아이템을 추적 → 배열 swap 시 motion layout이 위치 전환 애니메이션
+// SortableContext는 "밀림(shift)" 애니메이션이 기본 → 그리드 swap에 부적합
+// useDraggable + useDroppable 조합으로 순수 swap 구현
+// DragOverlay로 드래그 중 시각적 피드백
 
 const colors = [
   'bg-red-100 text-red-700 border-red-200',
@@ -36,36 +36,57 @@ const initialItems = Array.from({ length: 9 }, (_, i) => ({
   color: colors[i],
 }))
 
+// 각 그리드 셀: 드래그 가능 + 드롭 대상
 function GridCell({
-  item,
-  activeId,
+  id,
+  children,
+  color,
+  isDragActive,
+  isOver,
 }: {
-  item: { id: string; label: string; color: string }
-  activeId: string | null
+  id: string
+  children: React.ReactNode
+  color: string
+  isDragActive: boolean
+  isOver: boolean
 }) {
-  // 드래그 시작 감지 (transform은 적용하지 않음 — DragOverlay가 대신 보여줌)
-  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({ id: item.id })
-  // 드롭 대상 감지
-  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: item.id })
+  // useDraggable: 이 셀을 집을 수 있게
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    transform,
+    isDragging,
+  } = useDraggable({ id })
+
+  // useDroppable: 다른 셀이 여기 위로 올 수 있게
+  const { setNodeRef: setDropRef, isOver: isOverThis } = useDroppable({ id })
+
+  const active = isOver || isOverThis
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+  }
 
   return (
-    // motion.div에 layout → 배열 순서 바뀌면 자동으로 위치 애니메이션
-    <motion.div
-      layout
-      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-      ref={(node) => { setDragRef(node); setDropRef(node) }}
+    <div
+      ref={(node) => {
+        setDragRef(node)
+        setDropRef(node)
+      }}
+      style={style}
       {...attributes}
       {...listeners}
-      className={`flex h-24 cursor-grab items-center justify-center rounded-lg border text-2xl font-bold shadow-sm select-none ${item.color} ${
+      className={`flex h-24 cursor-grab items-center justify-center rounded-lg border text-2xl font-bold shadow-sm transition-all ${color} ${
         isDragging
-          ? 'opacity-0'                          // 원본 숨김 → DragOverlay가 표시
-          : isOver && activeId !== item.id
-            ? 'ring-2 ring-blue-400 scale-110'    // 드롭 대상 하이라이트
+          ? 'opacity-0'  // 원본 숨기기 → DragOverlay가 대신 표시
+          : active
+            ? 'ring-2 ring-blue-400 scale-105' // 드롭 대상 하이라이트
             : 'hover:shadow-md'
       }`}
     >
-      {item.label}
-    </motion.div>
+      {children}
+    </div>
   )
 }
 
@@ -83,11 +104,10 @@ export function Level4Page() {
     setActiveId(event.active.id as string)
   }
 
-  // 드롭 시 swap → motion layout이 애니메이션 처리
+  // swap: 두 아이템의 위치만 교체 (나머지는 안 움직임)
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     setActiveId(null)
-
     if (over && active.id !== over.id) {
       setItems((prev) => {
         const arr = [...prev]
@@ -105,7 +125,7 @@ export function Level4Page() {
       <p className="mt-2 text-gray-500">아이템을 드래그해서 1:1로 자리를 바꿔보세요.</p>
 
       <div className="mt-2 rounded-md bg-gray-100 p-3 text-sm text-gray-600">
-        <strong>학습 포인트:</strong> motion.div layout으로 swap 애니메이션, key=item.id로 React 추적
+        <strong>학습 포인트:</strong> SortableContext 없이 useDraggable + useDroppable로 순수 swap 구현, DragOverlay
       </div>
 
       <DndContext
@@ -116,13 +136,21 @@ export function Level4Page() {
       >
         <div className="mt-8 grid grid-cols-3 gap-3">
           {items.map((item) => (
-            <GridCell key={item.id} item={item} activeId={activeId} />
+            <GridCell
+              key={item.id}
+              id={item.id}
+              color={item.color}
+              isDragActive={activeId !== null}
+              isOver={false}
+            >
+              {item.label}
+            </GridCell>
           ))}
         </div>
 
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay>
           {activeItem ? (
-            <div className={`flex h-24 items-center justify-center rounded-lg border text-2xl font-bold shadow-lg ${activeItem.color}`}>
+            <div className={`flex h-24 w-full items-center justify-center rounded-lg border text-2xl font-bold shadow-lg ${activeItem.color}`}>
               {activeItem.label}
             </div>
           ) : null}
