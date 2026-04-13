@@ -3,8 +3,40 @@ import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
+// 구조적 이해:
+// SortableContext: 정렬 가능한 리스트를 만드는 컨텍스트
+// useSortable: 정렬 가능한 요소를 만드는 훅
+// arrayMove: 정렬 가능한 리스트의 순서를 변경하는 함수
+// verticalListSortingStrategy: 수직 리스트 정렬 전략
+
 function SortableItem({ id, children }: { id: string; children: React.ReactNode }) {
+  // useSortable 훅을 사용하여 정렬 가능한 요소를 만든다.
+  // 구조 할당 분해를 통해 가져온 속성들을 사용해서 정렬 가능한 요소를 만든다.
+  // 내가 설정하는 정보는 id 와 children 이다.
+
+  // 세부 사항
+  // attributes: 정렬 가능한 요소의 속성
+  // listeners: 정렬 가능한 요소의 리스너
+  // setNodeRef: 정렬 가능한 요소의 노드 참조
+  // transform: 정렬 가능한 요소의 변환
+  // transition: 정렬 가능한 요소의 전환
+  // isDragging: 정렬 가능한 요소가 드래그 중인지 여부
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+
+  // style 객체를 생성한다.
+  // 훅을 사용해서 가져온 속성들을 사용해서 style 객체를 생성한다.
+  // transform: CSS.Transform.toString(transform): 드래그 중인 요소의 위치를 계산 하여 실시간으로 적용
+  // transition: transition: 드래그 중인 요소의 시각적 효과가 부드럽게 변하도록 설정
+
+
+  // 내부적으로 아래와 같이 변환 됨
+  // const style = {
+  //   // 1. transform: 아이템이 내 마우스를 따라오게 만드는 '위치' 값 (좌표)
+  //   transform: CSS.Transform.toString(transform),
+
+  //   // 2. transition: 자리가 바뀔 때 '스르륵' 미끄러지듯 움직이는 '효과' (애니메이션)
+  //   transition,
+  // }
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -16,9 +48,8 @@ function SortableItem({ id, children }: { id: string; children: React.ReactNode 
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-grab rounded-lg border bg-white px-4 py-3 transition-shadow ${
-        isDragging ? 'z-10 border-blue-300 shadow-lg' : 'border-gray-200 shadow-sm hover:shadow-md'
-      }`}
+      className={`cursor-grab rounded-lg border bg-white px-4 py-3 transition-shadow ${isDragging ? 'z-10 border-blue-300 shadow-lg' : 'border-gray-200 shadow-sm hover:shadow-md'
+        }`}
     >
       {children}
     </div>
