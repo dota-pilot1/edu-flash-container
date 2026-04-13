@@ -11,7 +11,7 @@ command: impl-plan
 ## 출력 경로 규칙
 
 ```
-/Users/terecal/edu-flash-container/구현 계획/{YYMMDD}/{기능명}/구현 계획/
+/Users/terecal/edu-flash-container/구현 계획/{기능명}/구현 계획/
 ├── erd/
 │   └── {테이블명}.md        # ERD (테이블이 필요한 경우)
 ├── step1.md                 # 백엔드 구현
@@ -20,7 +20,6 @@ command: impl-plan
 └── ...                      # 필요 시 스텝 추가
 ```
 
-- `{YYMMDD}` → 오늘 날짜 (예: 260413)
 - `{기능명}` → 사용자가 전달한 기능명 (예: "헤더 메뉴 with db")
 
 ## 프로젝트 정보

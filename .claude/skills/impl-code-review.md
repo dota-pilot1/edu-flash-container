@@ -11,10 +11,9 @@ command: impl-code-review
 ## 출력 경로 규칙
 
 ```
-/Users/terecal/edu-flash-container/구현 계획/{YYMMDD}/{기능명}/코드 리뷰/{구현된 기능 이름}.md
+/Users/terecal/edu-flash-container/구현 계획/{기능명}/코드 리뷰/{구현된 기능 이름}.md
 ```
 
-- `{YYMMDD}` → 구현 계획 폴더의 날짜 (기존 계획 폴더 기준)
 - `{기능명}` → 기존 구현 계획 폴더명
 - `{구현된 기능 이름}` → 실제 구현된 기능 단위 (예: Menu CRUD API, 메뉴 관리 페이지)
 
