@@ -24,6 +24,19 @@ export function Level5Page() {
   const [filterDepth, setFilterDepth] = useState<number>(1)
   const [activeId, setActiveId] = useState<string | null>(null)
 
+  // 열려있는 메뉴들의 ID를 관리하는 Set
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(['menu-2'])) 
+
+  // 메뉴 열고 닫기 토글 함수
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
@@ -116,8 +129,10 @@ export function Level5Page() {
               <TreeBranch
                 key={node.id}
                 node={node}
-                filterDepth={filterDepth} // 선택된 뎁스 강조용으로만 유지
+                filterDepth={filterDepth}
                 activeId={activeId}
+                expandedIds={expandedIds}
+                onToggleExpanded={toggleExpanded}
               />
             ))}
           </div>

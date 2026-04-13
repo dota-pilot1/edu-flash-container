@@ -12,7 +12,8 @@
 - **Flat Source of Truth**: 데이터의 저장과 편집(정렬/삭제/수정)은 1차원 배열(Flat Array)에서 수행하여 복잡도를 낮추고 성능을 확보했습니다.
 - **Tree View Projection**: 렌더링 직전에만 Flat 데이터를 Tree 구조로 변환(`buildTree`)하여 사용자에게 직관적인 계층 UI를 제공합니다.
 
-### 3. 재귀적 UI 컴포넌트 (Recursive UI)
+### 3. 재귀적 UI 및 접기/펼치기 (Recursive UI & Folding)
+- **접기/펼치기(Fold/Unfold)**: `expandedIds` 상태(Set)를 통해 특정 브랜치의 가시성을 제어합니다. 부모를 접으면 재귀적 렌더링이 중단되어 하위 메뉴가 화면에서 사라집니다.
 - **TreeBranch 컴포넌트**: 자기 자신을 다시 호출하는 재귀적 구조를 통해 뎁스의 제한 없이 계층 구조를 시각화합니다.
 - **가변 Indentation**: `(depth - 1) * 40px` 공식을 통해 시각적인 계층 깊이를 명확하게 표현합니다.
 
