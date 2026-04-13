@@ -135,7 +135,6 @@ export function Level5Page() {
           </DndContext>
         </div>
       </div>
-      </div>
     </main>
   )
 }
