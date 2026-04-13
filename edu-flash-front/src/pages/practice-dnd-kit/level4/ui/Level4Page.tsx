@@ -69,6 +69,16 @@ function GridCell({
   )
 }
 
+// 배열에서 두 요소의 위치를 교체하는 유틸 함수
+function arraySwap<T extends { id: string }>(arr: T[], fromId: string, toId: string): T[] {
+  const result = [...arr]
+  const fromIndex = result.findIndex((i) => i.id === fromId)
+  const toIndex = result.findIndex((i) => i.id === toId)
+  if (fromIndex === -1 || toIndex === -1) return result
+  ;[result[fromIndex], result[toIndex]] = [result[toIndex], result[fromIndex]]
+  return result
+}
+
 export function Level4Page() {
   const [items, setItems] = useState(initialItems)
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -87,15 +97,8 @@ export function Level4Page() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     setActiveId(null)
-
     if (over && active.id !== over.id) {
-      setItems((prev) => {
-        const arr = [...prev]
-        const oldIndex = arr.findIndex((i) => i.id === active.id)
-        const newIndex = arr.findIndex((i) => i.id === over.id)
-        ;[arr[oldIndex], arr[newIndex]] = [arr[newIndex], arr[oldIndex]]
-        return arr
-      })
+      setItems((prev) => arraySwap(prev, active.id as string, over.id as string))
     }
   }
 
