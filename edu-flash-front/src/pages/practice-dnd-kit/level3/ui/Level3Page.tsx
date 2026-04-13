@@ -6,10 +6,22 @@ import {
   type DragOverEvent,
   DragOverlay,
   type DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, defaultAnimateLayoutChanges, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useDroppable } from '@dnd-kit/core'
+
+// 구조적 이해:
+// DndContext: 드래그 앤 드롭 컨텍스트
+// closestCorners: 가장 가까운 모서리 충돌 감지
+// DragOverlay: 드래그 중인 요소의 "분신" — 마우스를 따라다니는 복제본
+// PointerSensor: 마우스/터치 감지 센서, activationConstraint로 미세 움직임 무시
+// onDragStart: 드래그 시작 → activeId 저장
+// onDragOver: 드래그 중 다른 컨테이너 위 → 아이템을 해당 컨테이너로 이동
+// onDragEnd: 드롭 완료 → 같은 컨테이너 내 순서 정렬
 
 type ContainerId = 'todo' | 'doing' | 'done'
 
@@ -28,9 +40,23 @@ const initialContainers: Record<ContainerId, Item[]> = {
   done: [{ id: 'x1', label: '프로젝트 세팅' }],
 }
 
+// 부드러운 전환의 핵심:
+// wasDragging: true → 드래그 끝난 직후 레이아웃 점프 방지
+const animateLayoutChanges: AnimateLayoutChanges = (args) =>
+  defaultAnimateLayoutChanges({ ...args, wasDragging: true })
+
 function SortableCard({ id, children }: { id: string; children: React.ReactNode }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const style = { transform: CSS.Transform.toString(transform), transition }
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+    animateLayoutChanges,
+  })
+
+  // transform: 드래그 중 아이템의 실시간 위치 (마우스 따라감)
+  // transition: 다른 아이템들이 "비켜주는" 애니메이션
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
 
   return (
     <div
@@ -38,8 +64,9 @@ function SortableCard({ id, children }: { id: string; children: React.ReactNode 
       style={style}
       {...attributes}
       {...listeners}
+      // isDragging → opacity-0: 원본 숨기고 DragOverlay만 보여줌
       className={`cursor-grab rounded-md border bg-white px-3 py-2 text-sm shadow-sm ${
-        isDragging ? 'opacity-50' : 'border-gray-200'
+        isDragging ? 'opacity-0' : 'border-gray-200'
       }`}
     >
       {children}
@@ -79,6 +106,14 @@ export function Level3Page() {
   const [containers, setContainers] = useState(initialContainers)
   const [activeId, setActiveId] = useState<string | null>(null)
 
+  // 센서 설정: 5px 이상 움직여야 드래그 시작
+  // → 클릭과 드래그를 구분, 미세 떨림 방지
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    })
+  )
+
   const activeItem = activeId
     ? Object.values(containers).flat().find((i) => i.id === activeId)
     : null
@@ -87,43 +122,52 @@ export function Level3Page() {
     setActiveId(event.active.id as string)
   }
 
+  // 핵심: 컨테이너 간 이동 + 같은 컨테이너 내 정렬을 모두 여기서 처리
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event
     if (!over) return
 
     const activeContainer = findContainer(containers, active.id as string)
+    // over가 아이템이면 그 아이템의 컨테이너, 컨테이너 자체면 그 id
     const overContainer = findContainer(containers, over.id as string) ?? (over.id as ContainerId)
 
-    if (!activeContainer || !overContainer || activeContainer === overContainer) return
+    if (!activeContainer || !overContainer) return
 
-    setContainers((prev) => {
-      const activeItems = [...prev[activeContainer]]
-      const overItems = [...prev[overContainer]]
-      const activeIndex = activeItems.findIndex((i) => i.id === active.id)
-      const [movedItem] = activeItems.splice(activeIndex, 1)
-      overItems.push(movedItem)
+    // 다른 컨테이너로 이동하는 경우
+    if (activeContainer !== overContainer) {
+      setContainers((prev) => {
+        const activeItems = [...prev[activeContainer]]
+        const overItems = [...prev[overContainer]]
+        const activeIndex = activeItems.findIndex((i) => i.id === active.id)
+        const [movedItem] = activeItems.splice(activeIndex, 1)
 
-      return { ...prev, [activeContainer]: activeItems, [overContainer]: overItems }
-    })
+        // 핵심: push가 아니라 over 위치에 삽입 → 부드러운 삽입 효과
+        const overIndex = overItems.findIndex((i) => i.id === over.id)
+        if (overIndex >= 0) {
+          overItems.splice(overIndex, 0, movedItem)
+        } else {
+          overItems.push(movedItem)
+        }
+
+        return { ...prev, [activeContainer]: activeItems, [overContainer]: overItems }
+      })
+    }
+    // 같은 컨테이너 내 순서 변경
+    else {
+      const overIndex = containers[activeContainer].findIndex((i) => i.id === over.id)
+      const activeIndex = containers[activeContainer].findIndex((i) => i.id === active.id)
+
+      if (activeIndex !== overIndex && overIndex !== -1) {
+        setContainers((prev) => ({
+          ...prev,
+          [activeContainer]: arrayMove(prev[activeContainer], activeIndex, overIndex),
+        }))
+      }
+    }
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
     setActiveId(null)
-    if (!over) return
-
-    const activeContainer = findContainer(containers, active.id as string)
-    if (!activeContainer) return
-
-    const oldIndex = containers[activeContainer].findIndex((i) => i.id === active.id)
-    const newIndex = containers[activeContainer].findIndex((i) => i.id === over.id)
-
-    if (oldIndex !== newIndex && newIndex !== -1) {
-      setContainers((prev) => ({
-        ...prev,
-        [activeContainer]: arrayMove(prev[activeContainer], oldIndex, newIndex),
-      }))
-    }
   }
 
   return (
@@ -132,10 +176,11 @@ export function Level3Page() {
       <p className="mt-2 text-gray-500">카드를 다른 컬럼으로 드래그해서 이동시켜보세요.</p>
 
       <div className="mt-2 rounded-md bg-gray-100 p-3 text-sm text-gray-600">
-        <strong>학습 포인트:</strong> 다중 SortableContext, DragOverlay, onDragOver로 컨테이너 간 이동
+        <strong>학습 포인트:</strong> 다중 SortableContext, DragOverlay, onDragOver에서 위치 삽입, PointerSensor
       </div>
 
       <DndContext
+        sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
