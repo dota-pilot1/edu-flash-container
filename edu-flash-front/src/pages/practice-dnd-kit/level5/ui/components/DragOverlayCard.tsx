@@ -6,23 +6,21 @@ interface Props {
 
 export function DragOverlayCard({ item }: Props) {
   return (
-    <div className={`flex items-center rounded-lg border border-blue-300 bg-white shadow-xl ${
-      item.depth === 1 ? 'px-4 py-3' : 'px-3 py-2'
-    }`}>
-      <svg className="mr-3 h-4 w-4 shrink-0 text-blue-400" viewBox="0 0 16 16" fill="currentColor">
-        <circle cx="4" cy="3" r="1.5" /><circle cx="4" cy="8" r="1.5" /><circle cx="4" cy="13" r="1.5" />
-        <circle cx="12" cy="3" r="1.5" /><circle cx="12" cy="8" r="1.5" /><circle cx="12" cy="13" r="1.5" />
-      </svg>
-      <span className={`mr-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-medium ${
-        item.depth === 1 ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600'
-      }`}>
-        {item.label.charAt(0)}
+    <div className="flex w-[280px] items-center gap-2 rounded-md border border-indigo-200 bg-indigo-50/90 px-3 py-2 shadow-lg ring-1 ring-indigo-500/20 backdrop-blur-sm">
+      {/* 미니멀 아이콘 */}
+      <div className="flex h-5 w-5 items-center justify-center text-indigo-500">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+
+      <span className="truncate text-sm font-semibold text-indigo-900">
+        {item.label}
       </span>
-      <div>
-        <p className="text-sm font-semibold text-gray-900">{item.label}</p>
-        {item.depth === 1 && (
-          <p className="text-[11px] text-blue-500">하위 메뉴도 함께 이동</p>
-        )}
+
+      {/* 옮기는 중임을 나타내는 배지 */}
+      <div className="ml-auto flex h-5 items-center rounded-full bg-indigo-500 px-2 text-[10px] font-bold text-white uppercase tracking-tighter shadow-sm">
+        Moving
       </div>
     </div>
   )

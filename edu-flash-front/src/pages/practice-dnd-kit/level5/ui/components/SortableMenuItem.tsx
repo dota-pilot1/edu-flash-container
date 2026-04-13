@@ -4,14 +4,14 @@ import type { TreeItem } from '../../model/types'
 
 interface Props {
   item: TreeItem
-  isDragDisabled: boolean // 정렬 대상이 아닌 레벨은 핸들 비활성화
+  isDragDisabled?: boolean
   isDragging?: boolean
   hasChildren?: boolean
   isExpanded?: boolean
   onToggle?: () => void
 }
 
-export function SortableMenuItem({ item, isDragDisabled, hasChildren, isExpanded, onToggle }: Props) {
+export function SortableMenuItem({ item, hasChildren, isExpanded, onToggle }: Props) {
   const {
     attributes,
     listeners,
@@ -21,80 +21,92 @@ export function SortableMenuItem({ item, isDragDisabled, hasChildren, isExpanded
     isDragging: isSortableDragging,
   } = useSortable({ id: item.id })
 
-  const style = { 
-    transform: CSS.Transform.toString(transform), 
+  const style = {
+    transform: CSS.Transform.toString(transform),
     transition,
-    marginLeft: `${(item.depth - 1) * 40}px` 
+    marginLeft: `${(item.depth - 1) * 24}px`,
   }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`${isSortableDragging ? 'opacity-0' : ''}`}
+      className={`relative ${isSortableDragging ? 'z-50 opacity-50' : 'z-0'}`}
     >
-      <div
-        className={`group flex items-center rounded-lg border bg-white transition-all ${
-          isDragDisabled
-            ? 'border-gray-100 opacity-80'
-            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-        } ${item.depth === 1 ? 'px-4 py-3' : 'px-3 py-2'}`}
-      >
-        {/* 열고 닫기 화살표 버튼 (자식이 있을 때만 노출) */}
-        {hasChildren && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation() // 드래그 이벤트와 충돌 방지
-              onToggle?.()
-            }}
-            className="mr-1 flex h-6 w-6 items-center justify-center rounded-md transition-colors hover:bg-gray-100"
-          >
-            <svg
-              className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        )}
-        
-        {/* 자식이 없는 메뉴를 위한 더미 공간 (정렬 맞춤용) */}
-        {!hasChildren && <div className="mr-1 w-6" />}
-
-        {/* 드래그 핸들 (정렬 대상 뎁스일 때만 작동) */}
+      {/* 계층 가이드 라인 */}
+      {item.depth > 1 && (
         <div 
-          {...(!isDragDisabled ? attributes : {})} 
-          {...(!isDragDisabled ? listeners : {})} 
-          className={`p-1 ${isDragDisabled ? 'cursor-default opacity-20' : 'cursor-grab active:cursor-grabbing text-gray-300 group-hover:text-blue-500'}`}
+          className="absolute -left-3 top-[-8px] bottom-[50%] w-[1px] bg-slate-200"
+          style={{ left: '-12px' }}
+        />
+      )}
+      {item.depth > 1 && (
+        <div 
+          className="absolute -left-3 top-[50%] w-2 h-[1px] bg-slate-200"
+          style={{ left: '-12px' }}
+        />
+      )}
+
+      <div
+        className={`group flex items-center gap-0.5 rounded-md px-1.5 py-1 transition-colors ${
+          isSortableDragging ? 'bg-indigo-50 shadow-sm ring-1 ring-indigo-100' : 'hover:bg-slate-100'
+        }`}
+      >
+        {/* 접기/펼치기 화살표 */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggle?.()
+          }}
+          className={`flex h-4 w-4 items-center justify-center rounded transition-colors hover:bg-slate-200 ${
+            hasChildren ? 'visible' : 'invisible'
+          }`}
         >
-          <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="currentColor">
-            <circle cx="4" cy="3" r="1.5" /><circle cx="4" cy="8" r="1.5" /><circle cx="4" cy="13" r="1.5" />
-            <circle cx="12" cy="3" r="1.5" /><circle cx="12" cy="8" r="1.5" /><circle cx="12" cy="13" r="1.5" />
+          <svg
+            className={`h-2.5 w-2.5 text-slate-400 transition-transform duration-200 ${
+              isExpanded ? 'rotate-90' : ''
+            }`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={3}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
+        </button>
+
+        {/* 미니멀 아이콘 */}
+        <div className="flex h-5 w-5 items-center justify-center text-slate-400">
+          {hasChildren ? (
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+          ) : (
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          )}
         </div>
 
-        {/* 메뉴 아이콘 */}
-        <span className={`mx-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-medium ${
-          item.depth === 1
-            ? 'bg-gray-900 text-white'
-            : 'bg-gray-100 text-gray-500'
-        }`}>
-          {item.label.charAt(0)}
-        </span>
+        {/* 라벨 (전체 항상 드래그 가능) */}
+        <div className="flex flex-1 items-center gap-1.5 overflow-hidden ml-1">
+          <span className={`truncate text-[12.5px] tracking-tight ${
+            item.depth === 1 ? 'font-semibold text-slate-800' : 'font-medium text-slate-600'
+          }`}>
+            {item.label}
+          </span>
+        </div>
 
-        {/* 메뉴 정보 */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className={`truncate ${item.depth === 1 ? 'text-sm font-semibold text-gray-900' : 'text-sm text-gray-600'}`}>
-              {item.label}
-            </p>
-            {isDragDisabled && (
-              <span className="text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">잠김</span>
-            )}
-          </div>
+        {/* 핸들 (항상 활성화) */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex h-5 w-5 items-center justify-center rounded opacity-0 transition-opacity group-hover:opacity-100 cursor-grab active:cursor-grabbing hover:bg-slate-200"
+        >
+          <svg className="h-3 w-3 text-slate-300" fill="currentColor" viewBox="0 0 16 16">
+            <circle cx="4" cy="4" r="1.5" /><circle cx="4" cy="8" r="1.5" /><circle cx="4" cy="13" r="1.5" />
+            <circle cx="12" cy="4" r="1.5" /><circle cx="12" cy="8" r="1.5" /><circle cx="12" cy="13" r="1.5" />
+          </svg>
         </div>
       </div>
     </div>

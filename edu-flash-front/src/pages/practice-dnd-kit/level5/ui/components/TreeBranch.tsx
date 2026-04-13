@@ -14,7 +14,7 @@ export function TreeBranch({ node, filterDepth, activeId, expandedIds, onToggleE
   const hasChildren = node.children.length > 0
 
   return (
-    <div>
+    <div className="relative">
       <SortableMenuItem
         item={node}
         isDragDisabled={node.depth !== filterDepth}
@@ -24,9 +24,9 @@ export function TreeBranch({ node, filterDepth, activeId, expandedIds, onToggleE
         onToggle={() => onToggleExpanded(node.id)}
       />
       
-      {/* 재귀적 구조: 자식이 있고 + 부모가 열려 있을 때만 렌더링 */}
+      {/* 자식 렌더링 시 상단 여백 조절 및 연속성 있는 레이아웃 */}
       {hasChildren && isExpanded && (
-        <div className="mt-2 space-y-2 pb-2">
+        <div className="flex flex-col">
           {node.children.map((child) => (
             <TreeBranch
               key={child.id}
