@@ -14,22 +14,32 @@ export function Header() {
   const visibleMenus = menus.filter((m) => m.visible)
 
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link to="/" className="text-xl font-bold text-gray-900">
-          Edu Flash
+    <header className="border-b border-slate-200 bg-background/95 backdrop-blur">
+      <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-[15px] font-semibold tracking-[0.12em] text-foreground">
+            EF
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+              Learning Workspace
+            </span>
+            <span className="text-[20px] font-semibold tracking-tight text-foreground">
+              Edu Flash
+            </span>
+          </div>
         </Link>
-        <nav className="flex items-center gap-1 text-sm">
+        <nav className="flex h-11 items-center gap-1 rounded-xl bg-slate-100 p-1 text-[14px]">
           {visibleMenus.map((menu) => (
             <HeaderMenu key={menu.id} menu={menu} currentPath={location.pathname} />
           ))}
-          <span className="mx-2 text-gray-300">|</span>
+          <div className="mx-1 h-4 w-px bg-slate-300" />
           <Link
             to="/menu-manage"
-            className={`rounded-lg px-3 py-2 transition-colors ${
+            className={`flex h-9 items-center rounded-lg px-4 font-medium transition-colors ${
               location.pathname === '/menu-manage'
-                ? 'bg-blue-50 font-medium text-blue-600'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                ? 'bg-white text-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-slate-200 hover:text-foreground'
             }`}
           >
             메뉴 관리
@@ -63,10 +73,10 @@ function HeaderMenu({ menu, currentPath }: { menu: Menu; currentPath: string }) 
     return (
       <Link
         to={menu.path}
-        className={`rounded-lg px-3 py-2 transition-colors ${
+        className={`flex h-9 items-center rounded-lg px-4 font-medium transition-colors ${
           isActive
-            ? 'bg-blue-50 font-medium text-blue-600'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            ? 'bg-white text-foreground shadow-sm'
+            : 'text-muted-foreground hover:bg-slate-200 hover:text-foreground'
         }`}
       >
         {menu.name}
@@ -78,10 +88,10 @@ function HeaderMenu({ menu, currentPath }: { menu: Menu; currentPath: string }) 
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1 rounded-lg px-3 py-2 transition-colors ${
+        className={`flex h-9 items-center gap-1.5 rounded-lg px-4 font-medium transition-colors ${
           isActive
-            ? 'bg-blue-50 font-medium text-blue-600'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            ? 'bg-white text-foreground shadow-sm'
+            : 'text-muted-foreground hover:bg-slate-200 hover:text-foreground'
         }`}
       >
         {menu.name}
@@ -99,7 +109,7 @@ function HeaderMenu({ menu, currentPath }: { menu: Menu; currentPath: string }) 
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 min-w-[160px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+        <div className="absolute left-0 top-full z-20 mt-2 min-w-[220px] overflow-hidden rounded-xl bg-white p-1 text-popover-foreground shadow-[0_10px_30px_rgba(15,23,42,0.12)] ring-1 ring-slate-200">
           {menu.children
             .filter((c) => c.visible)
             .map((child) => (
@@ -109,10 +119,10 @@ function HeaderMenu({ menu, currentPath }: { menu: Menu; currentPath: string }) 
                   navigate(child.path)
                   setOpen(false)
                 }}
-                className={`flex w-full items-center px-4 py-2 text-left text-sm transition-colors ${
+                className={`flex h-9 w-full items-center rounded-lg px-3.5 text-left text-sm font-medium transition-colors ${
                   currentPath === child.path
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-slate-200 text-foreground'
+                    : 'text-muted-foreground hover:bg-slate-100 hover:text-foreground'
                 }`}
               >
                 {child.name}

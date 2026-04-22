@@ -101,6 +101,27 @@ function findContainer(containers: Record<ContainerId, Item[]>, itemId: string):
   return undefined
 }
 
+function getInsertIndex(params: {
+  overId: string
+  overItems: Item[]
+  overRect: DragOverEvent['over']['rect']
+  activeRect: DragOverEvent['active']['rect']['current']['translated']
+}) {
+  const { overId, overItems, overRect, activeRect } = params
+  const overIndex = overItems.findIndex((item) => item.id === overId)
+
+  if (overIndex === -1) {
+    return overItems.length
+  }
+
+  if (!activeRect) {
+    return overIndex
+  }
+
+  const isBelowOverItem = activeRect.top > overRect.top + overRect.height / 2
+  return overIndex + (isBelowOverItem ? 1 : 0)
+}
+
 export function Level3Page() {
   const [containers, setContainers] = useState(initialContainers)
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -141,15 +162,18 @@ export function Level3Page() {
         const activeItems = [...prev[activeContainer]]
         const overItems = [...prev[overContainer]]
         const activeIndex = activeItems.findIndex((i) => i.id === active.id)
+        if (activeIndex === -1) return prev
+
         const [movingItem] = activeItems.splice(activeIndex, 1)
 
-        // 핵심: push가 아니라 over 위치에 삽입 → 부드러운 삽입 효과
-        const overIndex = overItems.findIndex((i) => i.id === over.id)
-        if (overIndex >= 0) {
-          overItems.splice(overIndex, 0, movingItem)
-        } else {
-          overItems.push(movingItem)
-        }
+        // 커서가 올라간 카드의 위/아래 위치를 보고 삽입 위치를 결정
+        const insertIndex = getInsertIndex({
+          overId: over.id as string,
+          overItems,
+          overRect: over.rect,
+          activeRect: active.rect.current.translated,
+        })
+        overItems.splice(insertIndex, 0, movingItem)
 
         return { ...prev, [activeContainer]: activeItems, [overContainer]: overItems }
       })
@@ -168,7 +192,7 @@ export function Level3Page() {
     }
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = (_event: DragEndEvent) => {
     setActiveId(null)
   }
 
